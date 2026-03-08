@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RAG Simulator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+background:#0f172a;
+color:white;
+margin:0;
+padding:40px;
+}
+
+.container{
+max-width:1100px;
+margin:auto;
+}
+
+h1{
+text-align:center;
+margin-bottom:30px;
+}
+
+.search-box{
+display:flex;
+gap:10px;
+margin-bottom:30px;
+}
+
+input{
+flex:1;
+padding:14px;
+border-radius:8px;
+border:none;
+font-size:16px;
+}
+
+button{
+padding:14px 20px;
+border:none;
+background:#6366f1;
+color:white;
+border-radius:8px;
+cursor:pointer;
+font-weight:600;
+}
+
+.pipeline{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:20px;
+}
+
+.card{
+background:#1e293b;
+border-radius:12px;
+padding:20px;
+min-height:120px;
+transition:0.3s;
+}
+
+.card.active{
+background:#4338ca;
+transform:scale(1.03);
+}
+
+.card h3{
+margin-top:0;
+font-size:16px;
+color:#a5b4fc;
+}
+
+.card p{
+font-size:14px;
+opacity:0.9;
+}
+
+.result{
+margin-top:30px;
+background:#1e293b;
+padding:20px;
+border-radius:12px;
+}
+
+.context{
+margin-top:10px;
+background:#020617;
+padding:10px;
+border-radius:8px;
+font-size:13px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>RAG Pipeline Simulator</h1>
+
+<div class="search-box">
+<input id="query" placeholder="Ask a question..."/>
+<button onclick="runRAG()">Run RAG</button>
+</div>
+
+<div class="pipeline">
+
+<div class="card" id="step1">
+<h3>1. User Query</h3>
+<p id="queryDisplay">Waiting...</p>
+</div>
+
+<div class="card" id="step2">
+<h3>2. Embedding</h3>
+<p>Converting text into vector representation.</p>
+</div>
+
+<div class="card" id="step3">
+<h3>3. Vector Search</h3>
+<p>Searching knowledge base for similar embeddings.</p>
+</div>
+
+<div class="card" id="step4">
+<h3>4. Context Retrieval</h3>
+<p id="retrievedContext">...</p>
+</div>
+
+<div class="card" id="step5">
+<h3>5. Prompt Augmentation</h3>
+<p>Combining user query + retrieved context.</p>
+</div>
+
+<div class="card" id="step6">
+<h3>6. LLM Generation</h3>
+<p>Generating response using augmented prompt.</p>
+</div>
+
+</div>
+
+<div class="result">
+<h3>Final Answer</h3>
+<p id="answer">Run the pipeline to see the result.</p>
+</div>
+
+</div>
+
+<script>
+
+const knowledgeBase = [
+{
+text:"RAG stands for Retrieval Augmented Generation. It improves LLM answers using external knowledge."
+},
+{
+text:"Vector databases store embeddings to enable semantic similarity search."
+},
+{
+text:"Embeddings convert text into numerical vectors for machine learning models."
+},
+{
+text:"RAG reduces hallucinations by grounding answers in retrieved documents."
+}
+]
+
+function sleep(ms){
+return new Promise(resolve=>setTimeout(resolve,ms))
+}
+
+function clearActive(){
+document.querySelectorAll(".card").forEach(c=>c.classList.remove("active"))
+}
+
+function similarity(query, doc){
+query=query.toLowerCase()
+doc=doc.toLowerCase()
+
+let score=0
+
+query.split(" ").forEach(w=>{
+if(doc.includes(w)) score++
+})
+
+return score
+}
+
+async function runRAG(){
+
+clearActive()
+
+const query=document.getElementById("query").value
+
+document.getElementById("queryDisplay").innerText=query
+
+activate("step1")
+
+await sleep(800)
+
+activate("step2")
+
+await sleep(800)
+
+activate("step3")
+
+await sleep(800)
+
+let best=knowledgeBase[0]
+let bestScore=0
+
+knowledgeBase.forEach(d=>{
+let s=similarity(query,d.text)
+if(s>bestScore){
+bestScore=s
+best=d
+}
+})
+
+activate("step4")
+
+document.getElementById("retrievedContext").innerText=best.text
+
+await sleep(800)
+
+activate("step5")
+
+await sleep(800)
+
+activate("step6")
+
+let answer=`Based on retrieved knowledge: ${best.text}`
+
+document.getElementById("answer").innerText=answer
+
+}
+
+function activate(id){
+clearActive()
+document.getElementById(id).classList.add("active")
+}
+
+</script>
+
+</body>
+</html>
